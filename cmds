@@ -1,0 +1,54 @@
+Keycloak IS running — confirm it:
+sudo docker ps
+
+You should see keycloak with status Up X minutes. Then run:
+sudo docker logs keycloak | grep "started in"
+
+You should see something like:
+Keycloak 26.x.x started in 38.x seconds
+
+Now access it
+Open a new PowerShell window on your machine and run the SSH tunnel:
+powershellssh -i C:\Users\DakshSaini\Desktop\testing\keycloak-rotation-demo\ec2\keycloak-demo-key.pem -L 8080:localhost:8080 ubuntu@YOUR_EC2_IP
+
+Then open browser → http://localhost:8080 and you should see the Keycloak login page.
+
+What SSH Tunnel does
+Your Browser → localhost:8080
+                    ↓
+              SSH Tunnel (encrypted)
+                    ↓
+              EC2 → localhost:8080 (Keycloak)
+Keycloak sees the request coming from its own machine (localhost), not from a public IP. So it thinks:
+
+"Oh this is a local request, HTTP is fine"
+
+
+
+Username: admin
+Password: Admin@1234
+
+
+Verify the secret actually changed
+Run this:
+powershellaws secretsmanager get-secret-value `
+  --secret-id keycloak-rotation-demo/client-secret `
+  --version-stage AWSCURRENT `
+  --region eu-north-1 `
+  --query SecretString --output text
+You should see a new value for KEYCLOAK_CLIENT_SECRET — different from what you originally put in. That's your rotated secret!
+
+
+Current (new) secret
+powershellaws secretsmanager get-secret-value `
+  --secret-id keycloak-rotation-demo/client-secret `
+  --version-stage AWSCURRENT `
+  --region eu-north-1 `
+  --query SecretString --output text
+
+Previous (old) secret
+powershellaws secretsmanager get-secret-value `
+  --secret-id keycloak-rotation-demo/client-secret `
+  --version-stage AWSPREVIOUS `
+  --region eu-north-1 `
+  --query SecretString --output text

@@ -1,3 +1,5 @@
+// This just creates the secret container in AWS — like creating an empty box. No actual values yet
+
 resource "aws_secretsmanager_secret" "keycloak" {
   name                    = var.secret_name
   description             = "Keycloak client secret for rotation demo"

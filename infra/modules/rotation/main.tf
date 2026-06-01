@@ -1,3 +1,6 @@
+# it creates 5 resources
+
+
 # Zips rotation.py so Terraform can upload it to Lambda
 data "archive_file" "rotation_lambda" {
   type        = "zip"
@@ -54,9 +57,9 @@ resource "aws_lambda_function" "rotation" {
   filename         = data.archive_file.rotation_lambda.output_path
   function_name    = "keycloak-secrets-rotation"
   role             = aws_iam_role.lambda_rotation.arn
-  handler          = "rotation.lambda_handler"
-  runtime          = "python3.11"
-  source_code_hash = data.archive_file.rotation_lambda.output_base64sha256
+  handler          = "rotation.lambda_handler"   // rotation.lambda_handler = file rotation.py, function lambda_handler
+  runtime          = "python3.11"  // run it with Python 3.11
+  source_code_hash = data.archive_file.rotation_lambda.output_base64sha256  // if code changes, Terraform detects it and re-uploads
   timeout          = 60
 
   environment {
@@ -80,6 +83,10 @@ resource "aws_lambda_permission" "secrets_manager" {
   principal     = "secretsmanager.amazonaws.com"
   source_arn    = var.secret_arn
 }
+
+
+# This tells Secrets Manager:
+# "Every X days, automatically call this Lambda to rotate this secret"
 
 resource "aws_secretsmanager_secret_rotation" "keycloak" {
   secret_id           = var.secret_arn

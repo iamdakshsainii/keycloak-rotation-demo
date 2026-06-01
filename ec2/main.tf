@@ -7,7 +7,7 @@ resource "tls_private_key" "keycloak" {
 # Save private key to your machine
 resource "local_file" "private_key" {
   content         = tls_private_key.keycloak.private_key_pem
-  filename        = "${path.module}/keycloak-demo-key.pem"
+  filename        = "${path.module}/keycloak-demo-key.pem"  // path.module is a Terraform built-in variable that means the directory where the current .tf file lives.
   file_permission = "0400"
 }
 
@@ -30,7 +30,7 @@ resource "aws_security_group" "keycloak" {
     cidr_blocks = ["${var.your_ip}/32"]  // ip is from variable and it is of machine to tell SG to only allow my machine to knock on port 22
   }
 
-  # Keycloak - open to all because Lambda IPs are not fixed it is picked from pool everytime it execute - traffic coming into your EC2
+  # open to everyone (0.0.0.0/0) because Lambda doesn't have a fixed IP, so you can't restrict it. Because Lambda has no fixed IP. Every time Lambda runs, AWS spins it up on a random server with a random IP:
   ingress {
     from_port   = 8080
     to_port     = 8080
@@ -52,8 +52,8 @@ resource "aws_security_group" "keycloak" {
   }
 }
 
-# EC2 instance - Ubuntu 24.04, t3.small
-# Docker is installed automatically via user_data - no manual SSH needed for setup
+# This isn't a resource — it's a data source. It doesn't create anything. It just looks up the latest Ubuntu 24.04 AMI ID from AWS. 099720109477 is Canonical's (Ubuntu's maker) official AWS account ID.
+# The * wildcard at the end matches any patch version. The result (data.aws_ami.ubuntu.id) is used in the next resource.
 data "aws_ami" "ubuntu" {
   most_recent = true
   owners      = ["099720109477"] # Canonical
