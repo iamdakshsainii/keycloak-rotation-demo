@@ -1,0 +1,32 @@
+Day 1 — Infrastructure Setup
+
+Set up prerequisites: AWS CLI, Terraform, Git on Windows
+Created project folder structure for ec2/ and infra/ Terraform projects
+Wrote ec2/ Terraform files: providers, variables, security group, key pair, EC2 instance
+Deployed EC2 with Terraform — Ubuntu t3.small with Docker auto-installed via user_data
+Keycloak 26 started automatically via Docker on port 8080
+Accessed Keycloak admin console via SSH tunnel (HTTPS requirement workaround)
+Created demo realm and demo-app client with client authentication enabled
+Disabled SSL requirement on master and demo realms for Lambda access
+
+Day 2 — Secrets & Rotation Setup
+
+Wrote infra/ Terraform files: providers, variables, main, outputs
+Wrote secrets module: created Secrets Manager secret with placeholder values
+Wrote rotation module: IAM role, Lambda function, Lambda permission, rotation schedule
+Wrote initial Lambda rotation.py with 4-step AWS rotation flow
+Deployed all 7 infra resources via terraform apply
+Filled real secret values in AWS Secrets Manager via CLI
+Debugged Lambda 403 — root cause: Keycloak blocking HTTP on public IP
+Debugged Lambda 404 — root cause: Keycloak 26 removed PUT /client-secret, switched to POST
+Fixed rotation logic — moved Keycloak regeneration into createSecret step, setSecret becomes no-op
+
+Day 3 — Testing & Completion
+
+Fixed ResourceExistsException from stale AWSPENDING versions across failed rotation attempts
+Synced AWS secret with actual Keycloak secret after multiple failed rotations left them out of sync
+Successfully completed full 4-step rotation: createSecret → setSecret → testSecret → finishSecret
+Verified secret value changed in AWS Secrets Manager after rotation
+Committed all 17 files to Git
+Updated complete documentation with all fixes and troubleshooting notes
+
