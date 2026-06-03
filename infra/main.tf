@@ -1,5 +1,5 @@
 module "secrets" {
-  source         = "./modules/secrets"
+  source         = "./modules/secrets"  
   aws_region     = var.aws_region
   aws_account_id = var.aws_account_id
   secret_name    = var.secret_name
